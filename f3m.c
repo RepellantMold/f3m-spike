@@ -1,4 +1,8 @@
-// made in 2015 by GreaseMonkey - Public Domain
+/*
+ * F3M Spiked
+ * originally made in 2015 by GreaseMonkey - Public Domain
+ * forked by RepellantMold in 2023
+ */
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -48,7 +52,7 @@ void __assert_func(const char *a, int b, const char *c, const char *d)
 #endif
 
 // for -O3
-#if 0
+#if 1
 void *memset(void *b, int c, size_t len)
 {
 	size_t i;
@@ -603,7 +607,7 @@ void f3m_effect_Bxx(player_s *player, vchn_s *vchn, int tick, int pefp, int lefp
 	{
 		// TODO: handle Bxx/Cxx combined
 		player->cord = pefp-1;
-		player->crow = 64; 
+		player->crow = 64;
 	}
 }
 
@@ -616,7 +620,7 @@ void f3m_effect_Cxx(player_s *player, vchn_s *vchn, int tick, int pefp, int lefp
 		if(player->patptr_next == NULL)
 		{
 			// TODO: actually look up the jump value
-			player->crow = 64; 
+			player->crow = 64;
 		}
 	}
 }
@@ -750,7 +754,7 @@ void f3m_effect_Qxx(player_s *player, vchn_s *vchn, int tick, int pefp, int lefp
 	{
 		// Retrigger
 		// TODO: work out what happens when we've already done a period or volume slide
-		// TODO: 
+		// TODO:
 		f3m_note_retrig(player, vchn);
 
 		if(voldrop < 8)
@@ -1197,7 +1201,7 @@ void f3m_player_play(player_s *player, int32_t *mbuf, uint8_t *obuf)
 	// Clear mixing buffer
 	for(i = 0; i < blen*F3M_CHNS; i++)
 		mbuf[i] = 0;
-	
+
 	// Do each channel
 	for(i = 0; i < F3M_VCHNS; i++)
 	{
@@ -1270,7 +1274,7 @@ void f3m_player_play(player_s *player, int32_t *mbuf, uint8_t *obuf)
 					offs += suboffs>>16;
 					suboffs &= 0xFFFF;
 				}
-			} else { 
+			} else {
 #if F3M_CHNS == 1
 				int32_t loffs = offs-1;
 				int32_t lval = 0;

@@ -1,4 +1,8 @@
-// made in 2015 by GreaseMonkey - Public Domain
+/*
+ * F3M Spiked
+ * originally made in 2015 by GreaseMonkey - Public Domain
+ * forked by RepellantMold in 2023
+ */
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>

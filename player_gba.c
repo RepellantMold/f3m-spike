@@ -1,4 +1,8 @@
-// made in 2015 by GreaseMonkey - Public Domain
+/*
+ * F3M Spiked
+ * originally made in 2015 by GreaseMonkey - Public Domain
+ * forked by RepellantMold in 2023
+ */
 #include <stdint.h>
 
 #include "gba.h"
@@ -45,7 +49,7 @@ void _start(void)
 	//WAITCNT = 0x431B;
 
 	DISPCNT = 0x404;
-	
+
 	IME = 0;
 	ISR_funct = isr_handler;
 	IE = 0x0001;
