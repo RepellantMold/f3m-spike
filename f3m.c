@@ -323,9 +323,6 @@ void f3m_player_init(player_s *player, mod_s *mod)
 	int j, k;
 	volatile int lag;
 
-	//volatile uint16_t *butt = (volatile uint16_t *)0x80100000;
-	//*(butt++) = 0x1234;
-
 	// load samples
 	for(i = 0; i < 99; i++)
 	{
@@ -339,12 +336,11 @@ void f3m_player_init(player_s *player, mod_s *mod)
 	int smp_data_last = 0;
 
 	// FIXME: mednafen will murder you if write your SPU loading code like this and from what I gather so will a real PSX - pcsxr laps it up w/o any issues for some reason
-	SPU_MEM_CNT = 0x0004;
+	SPU_DMA_CTRL = 0x0004;
 	for(lag = 0; lag < 0x1000; lag++) ;
-	SPU_CNT = 0x0000;
-	//while((SPU_STAT & 0x3F) != 0x00) ;
+	SPU_CTRL = 0x0000;
 	for(lag = 0; lag < 0x1000; lag++) ;
-	SPU_MEM_ADDR = spu_offs;
+	SPU_ADDR = spu_offs;
 	for(lag = 0; lag < 0x1000; lag++) ;
 
 	for(i = 0; i < 99 && i < mod->ins_num; i++)
@@ -420,20 +416,17 @@ void f3m_player_init(player_s *player, mod_s *mod)
 			}
 
 			// Upload data
-			//for(k = 0; k < 8; k++) *(butt++) = smp_data_buf[k];
 			for(k = 0; k < 8; k++)
-				SPU_MEM_DATA = smp_data_buf[k];
-			SPU_CNT = 0x0010;
-			//while((SPU_STAT & 0x3F) != 0x10) ;
+				SPU_DATA = smp_data_buf[k];
+			SPU_CTRL = 0x0010;
 			while((SPU_STAT & 0x0400) != 0) ;
 		}
 
 		// Upload silence
-		SPU_MEM_DATA = 0x0500;
+		SPU_DATA = 0x0500;
 		for(k = 1; k < 8; k++)
-			SPU_MEM_DATA = 0x0000;
-		SPU_CNT = 0x0010;
-		//while((SPU_STAT & 0x3F) != 0x10) ;
+			SPU_DATA = 0x0000;
+		SPU_CTRL = 0x0010;
 		while((SPU_STAT & 0x0400) != 0) ;
 		spu_offs += 0x10>>3;
 	}
@@ -1350,6 +1343,8 @@ void f3m_player_play(player_s *player, int32_t *mbuf, uint8_t *obuf)
 	// We need to use hardware channels for this.
 	uint32_t kon_mask = 0;
 
+	const uint32_t kon_bytes = 0x9FC083FF;
+
 	for(i = 0; i < F3M_VCHNS; i++)
 	{
 		vchn_s *vchn = &(player->vchn[i]);
@@ -1361,7 +1356,7 @@ void f3m_player_play(player_s *player, int32_t *mbuf, uint8_t *obuf)
 			if((vchn->offs & 1) != 0)
 			{
 				vchn->offs &= ~1;
-				SPU_KOFF = (1<<i);
+				SPU_KEY_OFF1 = (1<<i), SPU_KEY_OFF2 = (1<<i) >> 8;
 			}
 
 			continue;
@@ -1385,21 +1380,21 @@ void f3m_player_play(player_s *player, int32_t *mbuf, uint8_t *obuf)
 
 		if((vchn->offs & 1) == 0)
 		{
-			SPU_n_START(i) = spu_offs + (((offs+14)/28)<<1);
-			SPU_n_REPEAT(i) = spu_offs_lpbeg;
-			SPU_n_ADSR(i) = 0x9FC083FF;
+			SPU_CH_ADDR(i) = spu_offs + (((offs+14)/28)<<1);
+			SPU_CH_LOOP_ADDR(i) = spu_offs_lpbeg;
+			SPU_CH_ADSR1(i) = 0x83FF, SPU_CH_ADSR2(i) = 0x9FC0;
 			//SPU_KON = (1<<i);
 			kon_mask |= (1<<i);
 			vchn->offs |= 1;
 		}
 
-		SPU_n_MVOL_L(i) = lvol;
-		SPU_n_MVOL_R(i) = rvol;
-		SPU_n_PITCH(i) = freq>>4;
+		SPU_CH_VOL_L(i) = lvol;
+		SPU_CH_VOL_R(i) = rvol;
+		SPU_CH_FREQ(i) = freq>>4;
 
 	}
 
-	SPU_KON = kon_mask;
+	SPU_KEY_ON1 = kon_mask, SPU_KEY_ON2 = kon_mask >> 8;
 
 #endif
 }
