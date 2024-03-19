@@ -48,6 +48,8 @@ void _start(void)
 
 	DISPCNT = 0x404;
 
+	SOUNDBIAS = 0x4200;
+
 	IME = 0;
 	ISR_funct = isr_handler;
 	IE = 0x0001;

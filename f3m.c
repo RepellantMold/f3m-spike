@@ -1329,7 +1329,7 @@ void f3m_player_play(player_s *player, int32_t *mbuf, uint8_t *obuf)
 		if(base < 0x00) base = 0x00;
 		if(base > 0xFF) base = 0xFF;
 #ifdef TARGET_GBA
-		obuf[i] = base ^ 0x80;
+		obuf[i] = base + 0x80;
 #else
 		obuf[i] = base;
 #endif

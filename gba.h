@@ -1,3 +1,6 @@
+// TODO: replace this custom SDK with a commonly used one
+#include <stdint.h>
+
 extern volatile uint16_t DISPCNT;
 extern volatile uint16_t DISPSTAT;
 extern volatile uint16_t VCOUNT;
@@ -52,6 +55,8 @@ extern volatile uint32_t SOUNDCNT;
 extern volatile uint16_t SOUNDCNT_L;
 extern volatile uint16_t SOUNDCNT_H;
 extern volatile uint32_t SOUNDCNT_X;
+
+extern volatile uint32_t SOUNDBIAS;
 
 extern volatile uint32_t FIFO_A;
 extern volatile uint16_t FIFO_A_L;
