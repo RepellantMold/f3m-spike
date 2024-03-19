@@ -44,8 +44,6 @@ static void wait_timer()
 
 void _start(void)
 {
-	int i;
-
 	//WAITCNT = 0x431B;
 
 	DISPCNT = 0x404;
@@ -62,7 +60,7 @@ void _start(void)
 	//uint32_t *src_s3m = *(uint32_t **)0x080000C0;
 	//uint32_t *dst_s3m = (uint32_t *)0x02000000;
 	//uint32_t *dst_s3m = (uint32_t *)0x03001800;
-	//for(i = 0; i < (24*1024)/4; i++)
+	//for(size_t i = 0; i < (24*1024)/4; i++)
 	//	dst_s3m[i] = src_s3m[i];
 	//mod_s *mod = (mod_s *)dst_s3m;
 	//mod_s *mod = (mod_s *)src_s3m;
