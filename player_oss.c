@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	printf("freq=%i chns=%i fmt=%08X\n", freq, chns, fmt);
+	printf("freq=%i chns=%i fmt=%X\n", freq, chns, fmt);
 
 	assert(argc > 1);
 	mod_s *mod = f3m_mod_dynaload_filename(argv[1]);
@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
 	for(;;)
 	{
 		f3m_player_play(&player, mbuf, obuf);
-		write(dsp, obuf, F3M_BUFLEN*F3M_CHNS);
+		(void)!write(dsp, obuf, F3M_BUFLEN*F3M_CHNS);
 	}
 
 	f3m_mod_free(mod);

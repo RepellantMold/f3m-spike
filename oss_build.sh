@@ -1,5 +1,3 @@
 #!/bin/sh
-cc -g -O3 -funroll-loops -o player_oss player_oss.c -Wall -Wextra && \
-true strip player_oss && \
+cc -std=c11 -g -Og -Wall -Wextra -Werror -o player_oss player_oss.c
 ls -l player_oss
-
