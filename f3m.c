@@ -174,8 +174,8 @@ static const int8_t f3m_sintab[64] = {
 #ifdef F3M_ENABLE_DYNALOAD
 mod_s *f3m_mod_dynaload_filename(const char *fname)
 {
-	int buf_max = 256;
-	int buf_len = 0;
+	size_t buf_max = 256;
+	size_t buf_len = 0;
 
 	FILE *fp = fopen(fname, "rb");
 	assert(fp != NULL);
@@ -185,7 +185,7 @@ mod_s *f3m_mod_dynaload_filename(const char *fname)
 	{
 		if(buf_len >= buf_max)
 		{
-			buf_max = (buf_max*5/4+2);
+			buf_max = (((buf_max*5)>>2)+2);
 
 			if(buf_len >= buf_max)
 				buf_max = buf_len + 10;
@@ -193,7 +193,7 @@ mod_s *f3m_mod_dynaload_filename(const char *fname)
 			buf = realloc(buf, buf_max);
 		}
 
-		int v = fgetc(fp);
+		const int v = fgetc(fp);
 		if(v < 0) break;
 		buf[buf_len++] = v;
 	}
@@ -220,7 +220,7 @@ static uint16_t f3m_get_para(const uint16_t *p)
 
 static int32_t f3m_calc_tempo_samples(int32_t tempo)
 {
-	return (F3M_FREQ*10)/(tempo*4);
+	return (F3M_FREQ*10)/(tempo<<2);
 }
 
 static int32_t f3m_calc_freq(int32_t freq)
@@ -349,7 +349,7 @@ void f3m_player_init(player_s *player, mod_s *mod)
 		// TODO: subtly adjust samples so loops work properly
 
 		// Get instrument + check if valid
-		const ins_s *ins = ((void *)mod) + (((uint32_t)(f3m_get_para(&player->ins_para[i])))*16);
+		const ins_s *ins = ((void *)mod) + (((uint32_t)(f3m_get_para(&player->ins_para[i])))<<4);
 		uint32_t para = (((uint32_t)(ins->dat_para_h))<<16)|((uint32_t)(ins->dat_para));
 		if(ins->len == 0 || para == 0)
 			continue;
@@ -361,7 +361,7 @@ void f3m_player_init(player_s *player, mod_s *mod)
 		if((ins->flags & 0x01) != 0 && lpend > ins->len-14)
 			lpend = ins->len-14;
 
-		const uint8_t *data = ((void *)mod) + (para*16);
+		const uint8_t *data = ((void *)mod) + (para<<4);
 		player->psx_spu_offset[i] = spu_offs;
 		player->psx_spu_offset_lpbeg[i] = spu_offs;
 		for(j = 0; j < 64000 && j < ins->len; j += 28, data += 28, spu_offs += (0x10>>3))
@@ -501,18 +501,18 @@ static void f3m_player_eff_vibrato(vchn_s *vchn, int lefp, int shift)
 static void f3m_note_retrig(player_s *player, vchn_s *vchn)
 {
 	int iidx = vchn->lins;
-	const ins_s *ins = player->modbase + (((uint32_t)(f3m_get_para(&player->ins_para[iidx-1])))*16);
+	const ins_s *ins = player->modbase + (((uint32_t)(f3m_get_para(&player->ins_para[iidx-1])))<<4);
 	uint32_t para = (((uint32_t)(ins->dat_para_h))<<16)|((uint32_t)(ins->dat_para));
 
 	int note = vchn->last_note;
-	vchn->gxx_period = ((8363 * 16 * period_table[note&15]) / ins->c4freq)
+	vchn->gxx_period = (((8363 << 4) * period_table[note&15]) / ins->c4freq)
 		>> (note>>4);
 
 #ifdef TARGET_PSX
 	vchn->spu_data = player->psx_spu_offset[iidx-1];
 	vchn->spu_data_lpbeg = player->psx_spu_offset_lpbeg[iidx-1];
 #else
-	vchn->data = player->modbase + para*16;
+	vchn->data = player->modbase + (para<<4);
 #endif
 	vchn->priority = F3M_PRIO_MUSIC;
 	vchn->len = (((ins->flags & 0x01) != 0) && ins->lpend < ins->len
@@ -558,7 +558,7 @@ static void f3m_jump_to_row(player_s *player, int nrow)
 	}
 
 	// Get patptr
-	const uint8_t *p = player->modbase + (((uint32_t)(f3m_get_para(&player->pat_para[player->cpat])))*16);
+	const uint8_t *p = player->modbase + (((uint32_t)(f3m_get_para(&player->pat_para[player->cpat])))<<4);
 	p += 2;
 
 	// Walk some number of rows
@@ -963,7 +963,7 @@ static void f3m_player_play_newnote(player_s *player)
 		assert(player->cpat < player->mod->pat_num);
 
 		// Get new pattern pointer
-		player->patptr = player->modbase + (((uint32_t)(f3m_get_para(&player->pat_para[player->cpat])))*16);
+		player->patptr = player->modbase + (((uint32_t)(f3m_get_para(&player->pat_para[player->cpat])))<<4);
 		player->patptr += 2;
 	}
 
@@ -1038,7 +1038,7 @@ static void f3m_player_play_newnote(player_s *player)
 				|| (pnote == 0xFF && pins != 0)) {
 			int iidx = (pins == 0 ? vchn->lins : pins);
 			vchn->lins = iidx;
-			const ins_s *ins = player->modbase + (((uint32_t)(f3m_get_para(&player->ins_para[iidx-1])))*16);
+			const ins_s *ins = player->modbase + (((uint32_t)(f3m_get_para(&player->ins_para[iidx-1])))<<4);
 
 			// TODO: work out correct rounding
 			if(pvol != 0xFF || pins != 0)
@@ -1215,9 +1215,9 @@ void f3m_player_play(player_s *player, int32_t *mbuf, uint8_t *obuf)
 		int32_t rvol = vchn->outvol;
 		if(vchn->pan < 0x8)
 		{
-			lvol = (lvol*vchn->pan*2)/15;
+			lvol = (lvol*(vchn->pan<<1))/15;
 		} else {
-			rvol = (lvol*(15-vchn->pan)*2)/15;
+			rvol = (lvol*((15-vchn->pan)<<1))/15;
 		}
 #else
 		int32_t vol = vchn->outvol;
@@ -1254,8 +1254,8 @@ void f3m_player_play(player_s *player, int32_t *mbuf, uint8_t *obuf)
 				for(; j < endsmp; j++)
 				{
 #if F3M_CHNS == 2
-					out[j*2+0] += (int32_t)(lvol*((int32_t)(d[offs])-0x80));
-					out[j*2+1] += (int32_t)(rvol*((int32_t)(d[offs])-0x80));
+					out[(j<<1)+0] += (int32_t)(lvol*((int32_t)(d[offs])-0x80));
+					out[(j<<1)+1] += (int32_t)(rvol*((int32_t)(d[offs])-0x80));
 #else
 #if F3M_CHNS == 1
 					out[j] += (int32_t)(vol*(((int32_t)d[offs])-0x80));
@@ -1276,8 +1276,8 @@ void f3m_player_play(player_s *player, int32_t *mbuf, uint8_t *obuf)
 				{
 #if F3M_CHNS == 2
 					// TODO: port optimisations to stereo
-					out[j*2+0] += (int32_t)(lvol*((int32_t)(d[offs])-0x80));
-					out[j*2+1] += (int32_t)(rvol*((int32_t)(d[offs])-0x80));
+					out[(j<<1)+0] += (int32_t)(lvol*((int32_t)(d[offs])-0x80));
+					out[(j<<1)+1] += (int32_t)(rvol*((int32_t)(d[offs])-0x80));
 #else
 #if F3M_CHNS == 1
 					if(loffs != offs)
@@ -1372,9 +1372,9 @@ void f3m_player_play(player_s *player, int32_t *mbuf, uint8_t *obuf)
 		int32_t rvol = vchn->outvol<<7;
 		if(vchn->pan < 0x8)
 		{
-			lvol = (lvol*(vchn->pan*2+1))/15;
+			lvol = (lvol*((vchn->pan<<1)+1))/15;
 		} else {
-			rvol = (rvol*((15-vchn->pan)*2+1))/15;
+			rvol = (rvol*(((15-vchn->pan)<<1)+1))/15;
 		}
 		const int32_t freq = vchn->freq;
 
