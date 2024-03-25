@@ -5,7 +5,7 @@ Fast S3M play routine for whatever, that also happens to work on the Game Boy Ad
 Made in 2015 by GreaseMonkey under Public Domain.
 Forked by RepellantMold in 2023 under BSD Zero clause.
 
-Test module is "Point of Departure" by Necros (pod.s3m), which you can get here (as it is not Public Domain I've decided to post a link to it instead): http://lite.modarchive.org/module.php?55696
+Test module is "Point of Departure" by Necros (pod.s3m), which you can get here (as it is not Public Domain I've decided to post a link to it instead): http://www.modarchive.org/module.php?55696
 
 (While nintendo.bin is also not Public Domain, it's a requirement in order to make this actually run on a GBA, and it's pretty small so it's included)
 
@@ -22,7 +22,7 @@ For other OSes, run `./gba_build.sh` in a terminal, it will spit out a file call
 Use that in your favo(u)rite emulator, or try it out on actual hardware!
 
 > ![NOTE]
-> This will probably not work immediately, so you will have to edit `gba_build.sh` and make it use the right prefix for your ARM cross compiler.
+> This will probably not work immediately, so you will have to edit the Makefile and make it use the right prefix for your ARM cross compiler.
 > (When building on a Raspberry Pi, you would leave this blank.)
 
 #### Changing the default module
@@ -36,7 +36,7 @@ it should work just nicely.
 
 You will need a C compiler that can be accessed by running `cc`.
 
-Run `./oss_build.sh` in a terminal.
+Run `make oss` in a terminal.
 
 This doesn't work on Windows.
 It's a rather simple player example, and you can learn from it and adapt it to work for you.
