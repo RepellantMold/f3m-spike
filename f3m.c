@@ -124,9 +124,9 @@ typedef struct vchn
 	int8_t outvol; // actual output
 	uint8_t pan;
 
-	uint8_t vib_offs;
-	uint8_t tre_offs;
-	uint8_t rtg_count;
+	size_t vib_offs;
+	size_t tre_offs;
+	size_t rtg_count;
 
 	uint8_t eft, efp, lefp, last_note;
 	uint8_t lins;
@@ -141,13 +141,14 @@ typedef struct player
 	const uint16_t *pat_para;
 	const uint8_t *ord_list;
 
-	int32_t speed, tempo;
+	size_t speed, tempo;
 	int32_t gvol;
-	int32_t ctick, tempo_samples, tempo_wait;
+	size_t ctick;
+	int32_t tempo_samples, tempo_wait;
 	int32_t cord, cpat, crow;
 	const uint8_t *patptr;
 	const uint8_t *patptr_next;
-	int32_t repeat_row, repeat_count;
+	size_t repeat_row, repeat_count;
 
 	int sfxoffs;
 	int ccount;
@@ -160,7 +161,15 @@ typedef struct player
 	vchn_s vchn[F3M_VCHNS];
 } player_s;
 
-const uint32_t period_amiclk = 8363*1712-400;
+typedef struct {
+	player_s *player;
+	vchn_s *vchn;
+	size_t tick;
+	size_t pefp;
+	size_t lefp;
+} pattern_handler_s;
+
+const size_t period_amiclk = 8363*1712-400;
 const uint16_t period_table[12] = {1712,1616,1524,1440,1356,1280,1208,1140,1076,1016,960,907};
 
 // from ITTECH.TXT
@@ -579,21 +588,31 @@ static void f3m_jump_to_row(player_s *player, int nrow)
 	player->crow = nrow-1;
 }
 
-void f3m_effect_nop(player_s *player, vchn_s *vchn, int tick, int pefp, int lefp)
+void f3m_effect_nop(pattern_handler_s *handler)
 {
-	(void)player; (void)vchn; (void)tick; (void)pefp; (void)lefp;
+	(void)handler;
 }
 
-void f3m_effect_Axx(player_s *player, vchn_s *vchn, int tick, int pefp, int lefp)
+void f3m_effect_Axx(pattern_handler_s *handler)
 {
+	player_s *player = handler->player;
+	vchn_s *vchn = handler->vchn;
+	const size_t tick = handler->tick;
+	int pefp = handler->pefp;
+	int lefp = handler->lefp;
 	(void)player; (void)vchn; (void)tick; (void)pefp; (void)lefp;
 
 	if(tick == 0 && pefp >= 1)
 		player->speed = pefp;
 }
 
-void f3m_effect_Bxx(player_s *player, vchn_s *vchn, int tick, int pefp, int lefp)
+void f3m_effect_Bxx(pattern_handler_s *handler)
 {
+	player_s *player = handler->player;
+	vchn_s *vchn = handler->vchn;
+	const size_t tick = handler->tick;
+	int pefp = handler->pefp;
+	int lefp = handler->lefp;
 	(void)player; (void)vchn; (void)tick; (void)pefp; (void)lefp;
 
 	if(tick == 0)
@@ -604,8 +623,13 @@ void f3m_effect_Bxx(player_s *player, vchn_s *vchn, int tick, int pefp, int lefp
 	}
 }
 
-void f3m_effect_Cxx(player_s *player, vchn_s *vchn, int tick, int pefp, int lefp)
+void f3m_effect_Cxx(pattern_handler_s *handler)
 {
+	player_s *player = handler->player;
+	vchn_s *vchn = handler->vchn;
+	const size_t tick = handler->tick;
+	int pefp = handler->pefp;
+	int lefp = handler->lefp;
 	(void)player; (void)vchn; (void)tick; (void)pefp; (void)lefp;
 
 	if(tick == 0)
@@ -618,15 +642,25 @@ void f3m_effect_Cxx(player_s *player, vchn_s *vchn, int tick, int pefp, int lefp
 	}
 }
 
-void f3m_effect_Dxx(player_s *player, vchn_s *vchn, int tick, int pefp, int lefp)
+void f3m_effect_Dxx(pattern_handler_s *handler)
 {
+	player_s *player = handler->player;
+	vchn_s *vchn = handler->vchn;
+	const size_t tick = handler->tick;
+	int pefp = handler->pefp;
+	int lefp = handler->lefp;
 	(void)player; (void)vchn; (void)tick; (void)pefp; (void)lefp;
 
 	f3m_player_eff_slide_vol(player, vchn, tick == 0);
 }
 
-void f3m_effect_Exx(player_s *player, vchn_s *vchn, int tick, int pefp, int lefp)
+void f3m_effect_Exx(pattern_handler_s *handler)
 {
+	player_s *player = handler->player;
+	vchn_s *vchn = handler->vchn;
+	const size_t tick = handler->tick;
+	int pefp = handler->pefp;
+	int lefp = handler->lefp;
 	(void)player; (void)vchn; (void)tick; (void)pefp; (void)lefp;
 
 	if(tick == 0)
@@ -645,8 +679,13 @@ void f3m_effect_Exx(player_s *player, vchn_s *vchn, int tick, int pefp, int lefp
 	}
 }
 
-void f3m_effect_Fxx(player_s *player, vchn_s *vchn, int tick, int pefp, int lefp)
+void f3m_effect_Fxx(pattern_handler_s *handler)
 {
+	player_s *player = handler->player;
+	vchn_s *vchn = handler->vchn;
+	const size_t tick = handler->tick;
+	int pefp = handler->pefp;
+	int lefp = handler->lefp;
 	(void)player; (void)vchn; (void)tick; (void)pefp; (void)lefp;
 
 	if(tick == 0)
@@ -665,8 +704,13 @@ void f3m_effect_Fxx(player_s *player, vchn_s *vchn, int tick, int pefp, int lefp
 	}
 }
 
-void f3m_effect_Gxx(player_s *player, vchn_s *vchn, int tick, int pefp, int lefp)
+void f3m_effect_Gxx(pattern_handler_s *handler)
 {
+	player_s *player = handler->player;
+	vchn_s *vchn = handler->vchn;
+	const size_t tick = handler->tick;
+	int pefp = handler->pefp;
+	int lefp = handler->lefp;
 	(void)player; (void)vchn; (void)tick; (void)pefp; (void)lefp;
 
 	if(tick == 0)
@@ -692,8 +736,13 @@ void f3m_effect_Gxx(player_s *player, vchn_s *vchn, int tick, int pefp, int lefp
 	}
 }
 
-void f3m_effect_Hxx(player_s *player, vchn_s *vchn, int tick, int pefp, int lefp)
+void f3m_effect_Hxx(pattern_handler_s *handler)
 {
+	player_s *player = handler->player;
+	vchn_s *vchn = handler->vchn;
+	const size_t tick = handler->tick;
+	int pefp = handler->pefp;
+	int lefp = handler->lefp;
 	(void)player; (void)vchn; (void)tick; (void)pefp; (void)lefp;
 
 	if(tick == 0)
@@ -709,30 +758,50 @@ void f3m_effect_Hxx(player_s *player, vchn_s *vchn, int tick, int pefp, int lefp
 	}
 }
 
-void f3m_effect_Kxx(player_s *player, vchn_s *vchn, int tick, int pefp, int lefp)
+void f3m_effect_Kxx(pattern_handler_s *handler)
 {
+	player_s *player = handler->player;
+	vchn_s *vchn = handler->vchn;
+	const size_t tick = handler->tick;
+	int pefp = handler->pefp;
+	int lefp = handler->lefp;
 	(void)player; (void)vchn; (void)tick; (void)pefp; (void)lefp;
+
+	pattern_handler_s *handler2 = handler;
+
+	handler2->pefp = 0;
+	handler2->lefp = 0;
 
 	if(tick != 0)
 	{
-		f3m_effect_Hxx(player, vchn, tick, 0, 0);
-		f3m_effect_Dxx(player, vchn, tick, pefp, lefp);
+		f3m_effect_Hxx(handler2);
+		f3m_effect_Dxx(handler);
 	}
 }
 
-void f3m_effect_Lxx(player_s *player, vchn_s *vchn, int tick, int pefp, int lefp)
+void f3m_effect_Lxx(pattern_handler_s *handler)
 {
-	(void)player; (void)vchn; (void)tick; (void)pefp; (void)lefp;
+	const size_t tick = handler->tick;
+
+	pattern_handler_s *handler2 = handler;
+
+	handler2->pefp = 0;
+	handler2->lefp = 0;
 
 	if(tick != 0)
 	{
-		f3m_effect_Gxx(player, vchn, tick, 0, 0);
-		f3m_effect_Dxx(player, vchn, tick, pefp, lefp);
+		f3m_effect_Gxx(handler2);
+		f3m_effect_Dxx(handler);
 	}
 }
 
-void f3m_effect_Qxx(player_s *player, vchn_s *vchn, int tick, int pefp, int lefp)
+void f3m_effect_Qxx(pattern_handler_s *handler)
 {
+	player_s *player = handler->player;
+	vchn_s *vchn = handler->vchn;
+	const size_t tick = handler->tick;
+	int pefp = handler->pefp;
+	int lefp = handler->lefp;
 	(void)player; (void)vchn; (void)tick; (void)pefp; (void)lefp;
 
 	// Notes:
@@ -740,8 +809,8 @@ void f3m_effect_Qxx(player_s *player, vchn_s *vchn, int tick, int pefp, int lefp
 	// 2. Current y (from lefp, not special mem) is used as a threshold.
 	// 3. When y is exceeded, change volume according to current x.
 
-	int voldrop = (lefp>>4);
-	int rtick = (lefp&15);
+	size_t voldrop = (lefp>>4);
+	size_t rtick = (lefp&15);
 
 	if(rtick != 0 && vchn->rtg_count >= rtick)
 	{
@@ -788,8 +857,13 @@ void f3m_effect_Qxx(player_s *player, vchn_s *vchn, int tick, int pefp, int lefp
 	vchn->rtg_count++;
 }
 
-void f3m_effect_Rxx(player_s *player, vchn_s *vchn, int tick, int pefp, int lefp)
+void f3m_effect_Rxx(pattern_handler_s *handler)
 {
+	player_s *player = handler->player;
+	vchn_s *vchn = handler->vchn;
+	const size_t tick = handler->tick;
+	int pefp = handler->pefp;
+	int lefp = handler->lefp;
 	(void)player; (void)vchn; (void)tick; (void)pefp; (void)lefp;
 
 	// TODO: actual tremolo
@@ -818,8 +892,13 @@ void f3m_effect_Rxx(player_s *player, vchn_s *vchn, int tick, int pefp, int lefp
 }
 
 
-void f3m_effect_Sxx(player_s *player, vchn_s *vchn, int tick, int pefp, int lefp)
+void f3m_effect_Sxx(pattern_handler_s *handler)
 {
+	player_s *player = handler->player;
+	vchn_s *vchn = handler->vchn;
+	const size_t tick = handler->tick;
+	int pefp = handler->pefp;
+	int lefp = handler->lefp;
 	(void)player; (void)vchn; (void)tick; (void)pefp; (void)lefp;
 
 	switch(lefp>>4)
@@ -884,8 +963,13 @@ void f3m_effect_Sxx(player_s *player, vchn_s *vchn, int tick, int pefp, int lefp
 	}
 }
 
-void f3m_effect_Txx(player_s *player, vchn_s *vchn, int tick, int pefp, int lefp)
+void f3m_effect_Txx(pattern_handler_s *handler)
 {
+	player_s *player = handler->player;
+	vchn_s *vchn = handler->vchn;
+	const size_t tick = handler->tick;
+	int pefp = handler->pefp;
+	int lefp = handler->lefp;
 	(void)player; (void)vchn; (void)tick; (void)pefp; (void)lefp;
 
 	if(pefp >= 33)
@@ -896,8 +980,13 @@ void f3m_effect_Txx(player_s *player, vchn_s *vchn, int tick, int pefp, int lefp
 
 }
 
-void f3m_effect_Uxx(player_s *player, vchn_s *vchn, int tick, int pefp, int lefp)
+void f3m_effect_Uxx(pattern_handler_s *handler)
 {
+	player_s *player = handler->player;
+	vchn_s *vchn = handler->vchn;
+	const size_t tick = handler->tick;
+	int pefp = handler->pefp;
+	int lefp = handler->lefp;
 	(void)player; (void)vchn; (void)tick; (void)pefp; (void)lefp;
 
 	if(tick == 0)
@@ -913,8 +1002,13 @@ void f3m_effect_Uxx(player_s *player, vchn_s *vchn, int tick, int pefp, int lefp
 	}
 }
 
-void f3m_effect_Vxx(player_s *player, vchn_s *vchn, int tick, int pefp, int lefp)
+void f3m_effect_Vxx(pattern_handler_s *handler)
 {
+	player_s *player = handler->player;
+	vchn_s *vchn = handler->vchn;
+	const size_t tick = handler->tick;
+	int pefp = handler->pefp;
+	int lefp = handler->lefp;
 	(void)player; (void)vchn; (void)tick; (void)pefp; (void)lefp;
 
 	if(tick != 0)
@@ -927,7 +1021,7 @@ void f3m_effect_Vxx(player_s *player, vchn_s *vchn, int tick, int pefp, int lefp
 }
 
 
-void (*(f3m_effect_tab[32]))(player_s *player, vchn_s *vchn, int tick, int pefp, int lefp) = {
+void (*(f3m_effect_tab[32]))(pattern_handler_s *handler) = {
 	f3m_effect_nop, f3m_effect_Axx, f3m_effect_Bxx, f3m_effect_Cxx,
 	f3m_effect_Dxx, f3m_effect_Exx, f3m_effect_Fxx, f3m_effect_Gxx,
 	f3m_effect_Hxx, f3m_effect_nop, f3m_effect_nop, f3m_effect_Kxx,
@@ -1089,7 +1183,9 @@ static void f3m_player_play_newnote(player_s *player)
 			vchn->rtg_count = 0;
 		}
 
-		f3m_effect_tab[peft](player, vchn, 0, pefp, lefp);
+		pattern_handler_s handler = { player, vchn, 0, pefp, lefp };
+
+		f3m_effect_tab[peft](&handler);
 	}
 
 	player->patptr = p;
@@ -1113,7 +1209,9 @@ void f3m_player_play_newtick(player_s *player)
 			uint8_t pefp = vchn->efp;
 			uint8_t lefp = vchn->lefp;
 
-			f3m_effect_tab[peft&31](player, vchn, player->ctick, pefp, lefp);
+			pattern_handler_s handler = { player, vchn, player->ctick, pefp, lefp };
+
+			f3m_effect_tab[peft&31](&handler);
 		}
 
 	}
