@@ -11,9 +11,9 @@
 #define TARGET_GBA_DEBUG
 #include "f3m.c"
 
-static int32_t mbuf[F3M_BUFLEN*F3M_CHNS];
-static uint8_t obuf[3][F3M_BUFLEN*F3M_CHNS];
-static player_s player;
+int32_t mbuf[F3M_BUFLEN*F3M_CHNS];
+uint8_t obuf[3][F3M_BUFLEN*F3M_CHNS];
+player_s player;
 
 static void isr_handler(void)
 {
@@ -36,7 +36,7 @@ static void isr_handler(void)
 	//asm("mov r0, #0x08000000 ; bx r0 ;\n");
 }
 
-static void wait_timer()
+static inline void wait_timer()
 {
 	while(!(ISR_flags & 0x0010)) {}
 	ISR_flags &= ~0x0010;
