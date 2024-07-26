@@ -14,7 +14,10 @@ oss: # linux only
 	$(CC) $(CFLAGS) -o player_oss player_oss.c
 	ls -l player_oss
 
-all: gba oss
+ma:
+	$(CC) $(CFLAGS) -o player_ma player_ma.c
+
+all: gba oss ma
 
 clean:
-	rm -f gba_f3m.gba player_gba.bin player_gba.o player_oss
+	rm -f gba_f3m.gba player_gba.bin player_gba.o player_oss player_ma
