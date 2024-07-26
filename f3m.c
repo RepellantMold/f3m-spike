@@ -158,6 +158,8 @@ typedef struct player
 	uint16_t psx_spu_offset_lpbeg[99];
 #endif
 
+	size_t bufsize;
+
 	vchn_s vchn[F3M_VCHNS];
 } player_s;
 
@@ -261,6 +263,8 @@ void f3m_player_init(player_s *player, mod_s *mod)
 	// Optional callback
 	update_music_status(0, mod->ins_num);
 #endif
+
+	player->bufsize = F3M_BUFLEN;
 
 	player->mod = mod;
 	player->modbase = (const void *)mod;
@@ -1273,7 +1277,7 @@ void f3m_player_play(player_s *player, int32_t *mbuf, uint8_t *obuf)
 {
 	int i, j;
 
-	const int blen = F3M_BUFLEN;
+	const int blen = player->bufsize;
 
 #ifdef TARGET_GBA_DEBUG
 	VPAL0[0] = 0x7FFF;
